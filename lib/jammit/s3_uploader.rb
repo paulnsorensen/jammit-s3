@@ -108,7 +108,7 @@ module Jammit
       log "#{local_path.gsub(/^#{ASSET_ROOT}\/public\//, "")} => #{remote_path}"
       new_object, options = @bucket.new_object, {}
       new_object.key = remote_path
-      new_object.value = open(local_path)
+      new_object.value = open(local_path).read
       options[:cache_control] = @cache_control if @cache_control
       options[:content_type] = MimeMagic.by_path(remote_path)
       options[:content_encoding] = "gzip" if use_gzip
