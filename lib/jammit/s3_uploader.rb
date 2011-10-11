@@ -77,28 +77,28 @@ module Jammit
 
         if use_versioned_assets?  # upload ALL files with version prepended
           remote_path = versioned_path(remote_path, true)
+        end
+
+        # selectively upload files if local version is different
+        # check if the file already exists on s3
+        begin
+          obj = @bucket[remote_path]
+        rescue
+          obj = nil
+        end
+
+        # if the object does not exist, or if the MD5 Hash / etag of the
+        # file has changed, upload it
+        if !obj || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
+
           upload_file local_path, remote_path, use_gzip
-        else # selectively upload files if local version is different
-          # check if the file already exists on s3
-          begin
-            obj = @bucket[remote_path]
-          rescue
-            obj = nil
+
+          if use_invalidation? && obj
+            log "File changed and will be invalidated in cloudfront: #{remote_path}"
+            @changed_files << remote_path
           end
-
-          # if the object does not exist, or if the MD5 Hash / etag of the
-          # file has changed, upload it
-          if !obj || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
-
-            upload_file local_path, remote_path, use_gzip
-
-            if use_invalidation? && obj
-              log "File changed and will be invalidated in cloudfront: #{remote_path}"
-              @changed_files << remote_path
-            end
-          else
-            log "file has not changed: #{remote_path}"
-          end
+        else
+          log "file has not changed: #{remote_path}"
         end
       end
     end
