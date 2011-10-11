@@ -92,7 +92,7 @@ module Jammit
         if !obj || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
 
           upload_file local_path, remote_path, use_gzip
-
+          log "file uploaded!"
           if use_invalidation? && obj
             log "File changed and will be invalidated in cloudfront: #{remote_path}"
             @changed_files << remote_path
