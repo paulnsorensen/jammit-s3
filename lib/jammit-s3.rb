@@ -27,7 +27,7 @@ module Jammit
         end
         if self.use_versioned_assets?
           config.action_controller.asset_path = self.asset_path_proc
-          config.action_mailer.asset_host     = self.asset_path_proc
+          config.action_mailer.asset_path     = self.asset_path_proc
         end
       end
     end
