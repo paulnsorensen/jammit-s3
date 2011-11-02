@@ -88,8 +88,7 @@ module Jammit
 
         # if the object does not exist, or if the MD5 Hash / etag of the
         # file has changed, upload it
-        if !obj || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
-
+        if !obj || !obj.exists? || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
           upload_file local_path, remote_path, use_gzip
 
           if use_invalidation? && obj
@@ -123,10 +122,11 @@ module Jammit
     def find_or_create_bucket
       AWS.config({:access_key_id =>  @access_key_id, :secret_access_key =>  @secret_access_key })
       @s3 = AWS::S3.new
-      # find or create the bucket
 
-      bucket = @s3.buckets[@bucket_name]
-      if bucket.nil?
+      # find or create the bucket
+      begin
+        bucket = @s3.buckets[@bucket_name]
+      rescue
         log "Bucket not found. Creating '#{@bucket_name}'..."
         bucket = @s3.buckets.create(@bucket_name)
         bucket = @s3.buckets[@bucket_name]
