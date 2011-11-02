@@ -7,7 +7,7 @@ module Jammit
 
       begin
         Jammit.upload_to_s3!
-      rescue AWS::S3::S3Exception => e
+      rescue Exception => e
         puts e.message
         exit(1)
       end
