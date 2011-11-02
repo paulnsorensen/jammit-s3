@@ -105,8 +105,9 @@ module Jammit
     def upload_file(local_path, remote_path, use_gzip)
       # save to s3
       log "#{local_path.gsub(/^#{ASSET_ROOT}\/public\//, "")} => #{remote_path}"
-      obj = @bucket.objects[remote_path]
-      if obj.nil?
+      begin
+        obj = @bucket.objects[remote_path]
+      rescue
         obj = @bucket.objects.create remote_path
       end
 
