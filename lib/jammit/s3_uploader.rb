@@ -115,7 +115,7 @@ module Jammit
       options[:content_type] = MimeMagic.by_path(remote_path)
       options[:content_encoding] = "gzip" if use_gzip
       options[:expires] = @expires if @expires
-      options[:access] = @acl if @acl
+      options[:acl] = @acl if @acl
       obj.write open(local_path).read, options
     end
 
