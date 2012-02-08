@@ -50,6 +50,7 @@ module Jammit
       # If content is requested over HTTPS using CNAMEs, your end users' browsers will display the warning:
       # This page contains both secure and non-secure items. To prevent this message from appearing, don't use
       # CNAMEs with CloudFront HTTPS distributions.
+      
       if Jammit.configuration[:use_cloudfront] && Jammit.configuration[:cloudfront_cname].present? && Jammit.configuration[:cloudfront_domain].present?
         asset_hostname = Jammit.configuration[:cloudfront_cname]
         asset_hostname_ssl = Jammit.configuration[:cloudfront_domain]
@@ -67,14 +68,22 @@ module Jammit
         end
 
         if request.ssl?
-          "#{protocol}#{asset_hostname_ssl}"
+          asset_host = "#{protocol}#{asset_hostname_ssl}"
         else
           if asset_hostname.is_a?(Array)
             i = source.hash % asset_hostname.size
-            "#{protocol}#{asset_hostname[i]}"
+            asset_host = "#{protocol}#{asset_hostname[i]}"
           else
-            "#{protocol}#{asset_hostname}"
+            asset_host = "#{protocol}#{asset_hostname}"
           end
+        end
+        
+        if Jammit.configuration[:use_cloudfront] == 'version'
+          version = assets_version
+          return asset_host if version.nil? || version.empty?
+          "#{asset_host}/#{version}"
+        else
+          "#{asset_host}"
         end
       end
     end

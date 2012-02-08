@@ -50,7 +50,7 @@ module Jammit
       s3_upload_files = Jammit.configuration[:s3_upload_files]
       globs << s3_upload_files if s3_upload_files.is_a?(String)
       globs += s3_upload_files if s3_upload_files.is_a?(Array)
-
+      
       # upload all the globs
       globs.each do |glob|
         upload_from_glob(glob)
@@ -77,7 +77,7 @@ module Jammit
         if use_versioned_assets?  # upload ALL files with version prepended
           remote_path = versioned_path(remote_path, true)
         end
-
+        
         # selectively upload files if local version is different
         # check if the file already exists on s3
         begin
@@ -85,10 +85,11 @@ module Jammit
         rescue
           obj = nil
         end
-
+        
         # if the object does not exist, or if the MD5 Hash / etag of the
         # file has changed, upload it
-        if !obj || !obj.exists? || (obj.etag != Digest::MD5.hexdigest(File.read(local_path)))
+        digest = '"' + Digest::MD5.hexdigest(File.read(local_path)) + '"'
+        if !obj || !obj.exists? || (obj.etag != digest)
           upload_file local_path, remote_path, use_gzip
 
           if use_invalidation? && obj
@@ -116,7 +117,12 @@ module Jammit
       options[:content_encoding] = "gzip" if use_gzip
       options[:expires] = @expires if @expires
       options[:acl] = @acl if @acl
-      obj.write open(local_path).read, options
+      begin
+        obj.write open(local_path).read, options
+      rescue Exception => e
+        msg = e.message
+        log "#{msg}"
+      end
     end
 
     def find_or_create_bucket
