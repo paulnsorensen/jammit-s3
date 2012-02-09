@@ -164,6 +164,28 @@ module Jammit
       log result_message(req, res)
     end
 
+    def delete_cache(asset_id)
+      reg = "^#{asset_id}"
+      begin        
+        objs = @bucket.objects.select {|o| o.key =~ /#{reg}/}
+      rescue
+        log "Can't delete. Object #{asset_id} not found."
+      end
+            
+      if !objs.nil?
+        objs.each do |o|
+        key = o.key
+          begin
+            log "Deleting #{key}"
+            o.delete
+          rescue Exception => e
+            msg = e.message
+            log "#{msg}"
+          end
+        end  
+      end      
+    end
+
     def result_message req, res
       if res.code == "201"
         'Invalidation request succeeded'

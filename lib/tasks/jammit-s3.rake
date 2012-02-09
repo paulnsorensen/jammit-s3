@@ -16,6 +16,15 @@ namespace :jammit do
       set_heroku_var_cmd << " --app #{args[:app]}" unless args[:app].nil? or args[:app].empty? # no Rails loaded for .blank?/present?
       system(set_heroku_var_cmd) or fail("Could not set RAILS_ASSET_ID")
     end
+    
+    desc "Remove specified assets from Amazon S3"
+    task :remove_assets, :asset_version do |t, args|
+      if args[:asset_version].nil?
+        puts "Please specify the RAILS_ASSET_ID to be removed."
+      else
+        remove_assets args[:asset_version]
+      end
+    end
   end
 
   def last_commit
@@ -25,5 +34,9 @@ namespace :jammit do
   def git_status
     `git status --porcelain`.chomp
   end
-
+  
+  def remove_assets asset_version
+    # this should probably be part of a refactored S3CommandLine object
+    Jammit::S3Uploader.new.delete_cache(asset_version)
+  end
 end
